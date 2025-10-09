@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confidential Weather Aggregator</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .weather-data {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .weather-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .weather-item .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+
+        .weather-item .label {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .station-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .station-item {
+            background: #f8fafc;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .station-item h4 {
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+
+        .station-item .station-info {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .forecast-history {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .forecast-item {
+            background: #f8fafc;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .forecast-item .forecast-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .forecast-item .forecast-id {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .forecast-item .forecast-time {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            z-index: 1000;
+        }
+
+        .connection-status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .connection-status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .weather-data {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status" id="connectionStatus">Disconnected</div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🌤️ Confidential Weather Aggregator</h1>
+            <p>Secure weather data aggregation using FHE encryption</p>
+            <p style="font-size: 0.9rem; opacity: 0.8; margin-top: 5px;">✨ Updated with New Gateway API - Enhanced Security & Performance</p>
+        </div>
+
+        <div class="grid">
+            <!-- Connection & Status -->
+            <div class="card">
+                <h2>🔗 Connection Status</h2>
+                <div id="walletInfo">
+                    <button class="btn" id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+                </div>
+                <div class="status info" id="networkInfo" style="display: none;">
+                    <strong>Network:</strong> <span id="networkName">-</span><br>
+                    <strong>Account:</strong> <span id="accountAddress">-</span>
+                </div>
+            </div>
+
+            <!-- Current Forecast Info -->
+            <div class="card">
+                <h2>📊 Current Forecast Period</h2>
+                <div id="currentForecastInfo">
+                    <div class="status info">
+                        <strong>Forecast ID:</strong> <span id="currentForecastId">-</span><br>
+                        <strong>Can Submit Data:</strong> <span id="canSubmitData">-</span><br>
+                        <strong>Can Generate Forecast:</strong> <span id="canGenerateForecast">-</span><br>
+                        <strong>Submitted Stations:</strong> <span id="submittedStations">-</span>
+                    </div>
+                </div>
+                <button class="btn" onclick="refreshForecastInfo()">🔄 Refresh Info</button>
+            </div>
+
+            <!-- Contract Info -->
+            <div class="card">
+                <h2>ℹ️ Contract Information</h2>
+                <div class="status info">
+                    <strong>Contract Address:</strong> <span id="contractAddress">-</span><br>
+                    <strong>Owner:</strong> <span id="contractOwner">-</span><br>
+                    <strong>Total Stations:</strong> <span id="totalStations">-</span><br>
+                    <strong>Your Status:</strong> <span id="userStatus">-</span><br>
+                    <strong>Time Window:</strong> <span id="timeWindowStatus">-</span>
+                </div>
+                <button class="btn" onclick="refreshContractInfo()">🔄 Refresh Info</button>
+                <button class="btn" id="toggleTimeWindowBtn" onclick="toggleTimeWindow()" style="display: none; margin-top: 10px;">⏰ Toggle Time Window</button>
+                <div id="timeWindowStatus2"></div>
+            </div>
+        </div>
+
+        <!-- Register Weather Station -->
+        <div class="card">
+            <h2>🏢 Register Weather Station</h2>
+            <p style="margin-bottom: 20px; color: #718096;">Register your address as a weather station (Owner only)</p>
+
+            <div class="form-group">
+                <label for="stationAddress">Station Address</label>
+                <input type="text" id="stationAddress" placeholder="0x..." readonly>
+            </div>
+            <div class="form-group">
+                <label for="stationLocation">Station Location</label>
+                <input type="text" id="stationLocation" placeholder="e.g., City Center Station">
+            </div>
+
+            <button class="btn" id="registerStationBtn" onclick="registerStation()">📝 Register Station</button>
+            <div id="registerStatus"></div>
+        </div>
+
+        <!-- Submit Weather Data -->
+        <div class="card">
+            <h2>🌡️ Submit Weather Data</h2>
+            <p style="margin-bottom: 20px; color: #718096;">Submit encrypted weather data from your weather station</p>
+
+            <div class="grid">
+                <div class="form-group">
+                    <label for="temperature">Temperature (°C)</label>
+                    <input type="number" id="temperature" step="0.01" placeholder="e.g., 22.5" min="-100" max="100">
+                </div>
+                <div class="form-group">
+                    <label for="humidity">Humidity (%)</label>
+                    <input type="number" id="humidity" step="0.01" placeholder="e.g., 65.0" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label for="pressure">Pressure (hPa)</label>
+                    <input type="number" id="pressure" step="0.01" placeholder="e.g., 1013.25" min="900" max="1100">
+                </div>
+                <div class="form-group">
+                    <label for="windSpeed">Wind Speed (km/h)</label>
+                    <input type="number" id="windSpeed" step="0.1" placeholder="e.g., 15.0" min="0" max="200">
+                </div>
+            </div>
+
+            <button class="btn" id="submitDataBtn" onclick="submitWeatherData()">📤 Submit Weather Data</button>
+            <div id="submitStatus"></div>
+        </div>
+
+        <!-- Generate Forecast -->
+        <div class="card">
+            <h2>🎯 Generate Regional Forecast</h2>
+            <p style="margin-bottom: 20px; color: #718096;">Aggregate data from all stations to generate regional forecast</p>
+
+            <button class="btn" id="generateForecastBtn" onclick="generateForecast()">⚡ Generate Forecast</button>
+            <div id="generateStatus"></div>
+        </div>
+
+        <div class="grid">
+            <!-- Weather Stations -->
+            <div class="card">
+                <h2>🏢 Weather Stations</h2>
+                <div id="stationsList" class="station-list">
+                    <div class="status info">Loading stations...</div>
+                </div>
+                <button class="btn" onclick="loadStations()">🔄 Refresh Stations</button>
+            </div>
+
+            <!-- Recent Forecasts -->
+            <div class="card">
+                <h2>📈 Recent Forecasts</h2>
+                <div id="forecastHistory" class="forecast-history">
+                    <div class="status info">Loading forecasts...</div>
+                </div>
+                <button class="btn" onclick="loadForecasts()">🔄 Refresh Forecasts</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Random Theme Generator
+        const themes = [
+            {
+                name: 'Purple Dream',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                cardBorder: '#667eea',
+                primaryColor: '#667eea',
+                accentColor: '#764ba2'
+            },
+            {
+                name: 'Ocean Breeze',
+                background: 'linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)',
+                cardBorder: '#2193b0',
+                primaryColor: '#2193b0',
+                accentColor: '#6dd5ed'
+            },
+            {
+                name: 'Sunset Glow',
+                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                cardBorder: '#f5576c',
+                primaryColor: '#f5576c',
+                accentColor: '#f093fb'
+            },
+            {
+                name: 'Forest Green',
+                background: 'linear-gradient(135deg, #134e5e 0%, #71b280 100%)',
+                cardBorder: '#134e5e',
+                primaryColor: '#134e5e',
+                accentColor: '#71b280'
+            },
+            {
+                name: 'Fire Blaze',
+                background: 'linear-gradient(135deg, #fa8231 0%, #fc6076 100%)',
+                cardBorder: '#fa8231',
+                primaryColor: '#fa8231',
+                accentColor: '#fc6076'
+            },
+            {
+                name: 'Midnight Blue',
+                background: 'linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%)',
+                cardBorder: '#4ca1af',
+                primaryColor: '#4ca1af',
+                accentColor: '#2c3e50'
+            },
+            {
+                name: 'Cherry Blossom',
+                background: 'linear-gradient(135deg, #eb3349 0%, #f45c43 100%)',
+                cardBorder: '#eb3349',
+                primaryColor: '#eb3349',
+                accentColor: '#f45c43'
+            },
+            {
+                name: 'Aqua Marine',
+                background: 'linear-gradient(135deg, #00b4db 0%, #0083b0 100%)',
+                cardBorder: '#00b4db',
+                primaryColor: '#00b4db',
+                accentColor: '#0083b0'
+            },
+            {
+                name: 'Royal Purple',
+                background: 'linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)',
+                cardBorder: '#834d9b',
+                primaryColor: '#834d9b',
+                accentColor: '#d04ed6'
+            },
+            {
+                name: 'Golden Hour',
+                background: 'linear-gradient(135deg, #f7971e 0%, #ffd200 100%)',
+                cardBorder: '#f7971e',
+                primaryColor: '#f7971e',
+                accentColor: '#ffd200'
+            }
+        ];
+
+        // Select random theme
+        const selectedTheme = themes[Math.floor(Math.random() * themes.length)];
+
+        // Apply theme
+        function applyTheme() {
+            document.body.style.background = selectedTheme.background;
+
+            const style = document.createElement('style');
+            style.innerHTML = `
+                .station-item {
+                    border-left-color: ${selectedTheme.cardBorder} !important;
+                }
+                .weather-item .value {
+                    color: ${selectedTheme.primaryColor} !important;
+                }
+                .forecast-item .forecast-id {
+                    color: ${selectedTheme.primaryColor} !important;
+                }
+                .form-group input:focus, .form-group select:focus {
+                    border-color: ${selectedTheme.primaryColor} !important;
+                    box-shadow: 0 0 0 3px ${selectedTheme.primaryColor}33 !important;
+                }
+                .btn {
+                    background: ${selectedTheme.background} !important;
+                }
+                .btn:hover {
+                    box-shadow: 0 5px 15px ${selectedTheme.primaryColor}66 !important;
+                }
+                .loading {
+                    border-top-color: ${selectedTheme.primaryColor} !important;
+                }
+            `;
+            document.head.appendChild(style);
+
+            console.log('🎨 Applied theme:', selectedTheme.name);
+        }
+
+        // Apply theme when page loads
+        applyTheme();
+
+        // Updated contract address - deployed with new Gateway API + Time Window Control
+        const CONTRACT_ADDRESS = "0x291B77969Bb18710609C35d263adCb0848a3f82F";
+
+        // Updated ABI for new gateway API (callback signature changed + time window control)
+        const CONTRACT_ABI = [
+            "function registerStation(address stationAddress, string calldata location) external",
+            "function submitWeatherData(uint32 temperature, uint32 humidity, uint32 pressure, uint8 windSpeed) external",
+            "function generateRegionalForecast() external",
+            "function getCurrentForecastInfo() external view returns (uint256, bool, bool, uint256)",
+            "function getStationInfo(uint256 stationId) external view returns (address, string memory, bool, uint256, uint256)",
+            "function getRegionalForecast(uint256 forecastId) external view returns (uint32, uint32, uint32, uint8, uint256, uint256, bool)",
+            "function stationCount() external view returns (uint256)",
+            "function forecastCount() external view returns (uint256)",
+            "function owner() external view returns (address)",
+            "function canSubmitData() external view returns (bool)",
+            "function canGenerateForecast() external view returns (bool)",
+            "function getCurrentHour() external view returns (uint256)",
+            "function hasStationSubmitted(uint256 stationId) external view returns (bool)",
+            "function getActiveStationCount() external view returns (uint256)",
+            "function timeWindowEnabled() external view returns (bool)",
+            "function setTimeWindowEnabled(bool enabled) external",
+            // Updated callback: removed signatures parameter for new gateway API
+            "function processForecastResult(uint256 requestId, uint32 totalTemperature, uint32 totalHumidity, uint32 totalPressure, uint32 totalWindSpeed) public"
+        ];
+
+        let provider = null;
+        let signer = null;
+        let contract = null;
+        let userAccount = null;
+
+        // Initialize when page loads
+        window.addEventListener('load', async () => {
+            await initializeApp();
+        });
+
+        async function initializeApp() {
+            try {
+                if (typeof window.ethereum !== 'undefined') {
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    updateConnectionStatus('disconnected');
+
+                    // Check if already connected
+                    const accounts = await provider.listAccounts();
+                    if (accounts.length > 0) {
+                        await connectWallet();
+                    }
+                } else {
+                    showStatus('error', 'Please install MetaMask to use this application');
+                    updateConnectionStatus('disconnected');
+                }
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showStatus('error', 'Failed to initialize application');
+            }
+        }
+
+        async function connectWallet() {
+            try {
+                if (!provider) {
+                    throw new Error('No provider available');
+                }
+
+                // Request account access
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+                signer = provider.getSigner();
+                userAccount = await signer.getAddress();
+
+                // Initialize contract
+                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+                // Update UI
+                updateWalletInfo();
+                updateConnectionStatus('connected');
+
+                // Load initial data
+                await refreshForecastInfo();
+                await refreshContractInfo();
+                await loadStations();
+                await loadForecasts();
+
+                // Listen for account changes
+                window.ethereum.on('accountsChanged', handleAccountsChanged);
+                window.ethereum.on('chainChanged', handleChainChanged);
+
+            } catch (error) {
+                console.error('Connection error:', error);
+                showStatus('error', 'Failed to connect wallet: ' + error.message);
+                updateConnectionStatus('disconnected');
+            }
+        }
+
+        function updateWalletInfo() {
+            const connectBtn = document.getElementById('connectBtn');
+            const networkInfo = document.getElementById('networkInfo');
+            const accountAddress = document.getElementById('accountAddress');
+            const stationAddress = document.getElementById('stationAddress');
+
+            if (userAccount) {
+                connectBtn.style.display = 'none';
+                networkInfo.style.display = 'block';
+                accountAddress.textContent = userAccount.substring(0, 6) + '...' + userAccount.substring(38);
+
+                // Auto-fill station address
+                if (stationAddress) {
+                    stationAddress.value = userAccount;
+                }
+
+                // Get network info
+                provider.getNetwork().then(network => {
+                    document.getElementById('networkName').textContent = network.name || 'Unknown';
+                });
+            } else {
+                connectBtn.style.display = 'block';
+                networkInfo.style.display = 'none';
+            }
+        }
+
+        function updateConnectionStatus(status) {
+            const statusElement = document.getElementById('connectionStatus');
+            statusElement.className = `connection-status ${status}`;
+            statusElement.textContent = status === 'connected' ? '🟢 Connected' : '🔴 Disconnected';
+        }
+
+        async function refreshForecastInfo() {
+            if (!contract) {
+                showStatus('error', 'Please connect wallet first');
+                return;
+            }
+
+            try {
+                const forecastInfo = await contract.getCurrentForecastInfo();
+                const canSubmit = await contract.canSubmitData();
+                const canGenerate = await contract.canGenerateForecast();
+
+                document.getElementById('currentForecastId').textContent = forecastInfo[0].toString();
+                document.getElementById('canSubmitData').textContent = canSubmit ? '✅ Yes' : '❌ No';
+                document.getElementById('canGenerateForecast').textContent = canGenerate ? '✅ Yes' : '❌ No';
+                document.getElementById('submittedStations').textContent = forecastInfo[3].toString();
+
+            } catch (error) {
+                console.error('Error refreshing forecast info:', error);
+                showStatus('error', 'Failed to refresh forecast info');
+            }
+        }
+
+        async function refreshContractInfo() {
+            if (!contract) return;
+
+            try {
+                const owner = await contract.owner();
+                const stationCount = await contract.stationCount();
+                const timeWindowEnabled = await contract.timeWindowEnabled();
+
+                document.getElementById('contractAddress').textContent = CONTRACT_ADDRESS.substring(0, 10) + '...';
+                document.getElementById('contractOwner').textContent = owner.substring(0, 10) + '...';
+                document.getElementById('totalStations').textContent = stationCount.toString();
+                document.getElementById('timeWindowStatus').textContent = timeWindowEnabled ? '✅ Enabled' : '❌ Disabled';
+
+                // Debug logging
+                console.log('🔍 Owner check:');
+                console.log('  Contract owner:', owner);
+                console.log('  User account:', userAccount);
+                console.log('  Match:', userAccount && userAccount.toLowerCase() === owner.toLowerCase());
+
+                // Check if current user is owner or registered station
+                let userStatus = 'Not authorized';
+                const isOwner = userAccount && userAccount.toLowerCase() === owner.toLowerCase();
+
+                if (userAccount) {
+                    if (isOwner) {
+                        userStatus = '👑 Contract Owner';
+                        // Show time window toggle button for owner
+                        const toggleBtn = document.getElementById('toggleTimeWindowBtn');
+                        if (toggleBtn) {
+                            toggleBtn.style.display = 'block';
+                            console.log('✅ Toggle button shown for owner');
+                        } else {
+                            console.error('❌ Toggle button element not found!');
+                        }
+                    } else {
+                        // Hide time window toggle button for non-owners
+                        const toggleBtn = document.getElementById('toggleTimeWindowBtn');
+                        if (toggleBtn) {
+                            toggleBtn.style.display = 'none';
+                            console.log('🚫 Toggle button hidden for non-owner');
+                        }
+
+                        // Check if user is a registered station
+                        try {
+                            for (let i = 1; i <= stationCount; i++) {
+                                const stationInfo = await contract.getStationInfo(i);
+                                if (stationInfo[0].toLowerCase() === userAccount.toLowerCase()) {
+                                    userStatus = stationInfo[2] ? '🏢 Active Station' : '❌ Inactive Station';
+                                    break;
+                                }
+                            }
+                        } catch (error) {
+                            // User might not be a registered station
+                        }
+                    }
+                }
+
+                document.getElementById('userStatus').textContent = userStatus;
+
+            } catch (error) {
+                console.error('Error refreshing contract info:', error);
+            }
+        }
+
+        async function registerStation() {
+            if (!contract) {
+                showStatus('error', 'Please connect wallet first');
+                return;
+            }
+
+            // Check if user is authorized (owner)
+            try {
+                const owner = await contract.owner();
+                if (userAccount.toLowerCase() !== owner.toLowerCase()) {
+                    document.getElementById('registerStatus').innerHTML =
+                        '<div class="status error">❌ Only the contract owner can register new weather stations.<br>Owner: ' +
+                        owner.substring(0, 10) + '...<br>Your address: ' + userAccount.substring(0, 10) + '...</div>';
+                    return;
+                }
+            } catch (error) {
+                showStatus('error', 'Failed to check authorization');
+                return;
+            }
+
+            const stationAddress = document.getElementById('stationAddress').value;
+            const stationLocation = document.getElementById('stationLocation').value;
+
+            if (!stationAddress || !stationLocation) {
+                showStatus('error', 'Please fill in station address and location');
+                return;
+            }
+
+            try {
+                const registerBtn = document.getElementById('registerStationBtn');
+                const statusDiv = document.getElementById('registerStatus');
+
+                registerBtn.disabled = true;
+                registerBtn.innerHTML = '<span class="loading"></span>Registering...';
+
+                const tx = await contract.registerStation(stationAddress, stationLocation);
+
+                statusDiv.innerHTML = '<div class="status info">Transaction submitted. Waiting for confirmation...</div>';
+
+                await tx.wait();
+
+                statusDiv.innerHTML = '<div class="status success">Weather station registered successfully!</div>';
+
+                // Clear form
+                document.getElementById('stationLocation').value = '';
+
+                // Refresh data
+                await refreshContractInfo();
+                await loadStations();
+
+            } catch (error) {
+                console.error('Error registering station:', error);
+                let errorMessage = error.message;
+
+                // Handle specific error cases
+                if (errorMessage.includes('Station already registered')) {
+                    errorMessage = '⚠️ This station address is already registered. Each address can only be registered once.';
+                } else if (errorMessage.includes('Not authorized')) {
+                    errorMessage = '🚫 Access denied: Only the contract owner can register stations';
+                } else if (errorMessage.includes('user rejected')) {
+                    errorMessage = '❌ Transaction was rejected by user';
+                } else if (errorMessage.includes('insufficient funds')) {
+                    errorMessage = '💰 Insufficient funds for gas fees';
+                } else {
+                    // Show simplified error message
+                    const match = errorMessage.match(/execution reverted: (.+?)"/);
+                    if (match) {
+                        errorMessage = `⚠️ ${match[1]}`;
+                    }
+                }
+
+                document.getElementById('registerStatus').innerHTML =
+                    `<div class="status error">${errorMessage}</div>`;
+            } finally {
+                const registerBtn = document.getElementById('registerStationBtn');
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = '📝 Register Station';
+            }
+        }
+
+        async function submitWeatherData() {
+            if (!contract) {
+                showStatus('error', 'Please connect wallet first');
+                return;
+            }
+
+            const temperature = document.getElementById('temperature').value;
+            const humidity = document.getElementById('humidity').value;
+            const pressure = document.getElementById('pressure').value;
+            const windSpeed = document.getElementById('windSpeed').value;
+
+            if (!temperature || !humidity || !pressure || !windSpeed) {
+                showStatus('error', 'Please fill in all weather data fields');
+                return;
+            }
+
+            try {
+                const submitBtn = document.getElementById('submitDataBtn');
+                const statusDiv = document.getElementById('submitStatus');
+
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="loading"></span>Submitting...';
+
+                // Convert to the required format (multiply by 100 for precision)
+                const tempValue = Math.round(parseFloat(temperature) * 100);
+                const humidityValue = Math.round(parseFloat(humidity) * 100);
+                const pressureValue = Math.round(parseFloat(pressure) * 100);
+                const windSpeedValue = Math.round(parseFloat(windSpeed));
+
+                const tx = await contract.submitWeatherData(
+                    tempValue,
+                    humidityValue,
+                    pressureValue,
+                    windSpeedValue
+                );
+
+                statusDiv.innerHTML = '<div class="status info">Transaction submitted. Waiting for confirmation...</div>';
+
+                await tx.wait();
+
+                statusDiv.innerHTML = '<div class="status success">Weather data submitted successfully!</div>';
+
+                // Clear form
+                document.getElementById('temperature').value = '';
+                document.getElementById('humidity').value = '';
+                document.getElementById('pressure').value = '';
+                document.getElementById('windSpeed').value = '';
+
+                // Refresh info
+                await refreshForecastInfo();
+
+            } catch (error) {
+                console.error('Error submitting weather data:', error);
+                let errorMessage = error.message;
+
+                // Handle specific error cases
+                if (errorMessage.includes('Not authorized')) {
+                    errorMessage = '🚫 Only registered weather stations can submit data';
+                } else if (errorMessage.includes('Already submitted')) {
+                    errorMessage = '⚠️ You have already submitted data for this forecast period';
+                } else if (errorMessage.includes('Cannot submit data')) {
+                    errorMessage = '⏰ Data submission window is closed. Wait for next forecast period.';
+                } else if (errorMessage.includes('user rejected')) {
+                    errorMessage = '❌ Transaction was rejected by user';
+                } else if (errorMessage.includes('insufficient funds')) {
+                    errorMessage = '💰 Insufficient funds for gas fees';
+                } else {
+                    const match = errorMessage.match(/execution reverted: (.+?)"/);
+                    if (match) {
+                        errorMessage = `⚠️ ${match[1]}`;
+                    }
+                }
+
+                document.getElementById('submitStatus').innerHTML =
+                    `<div class="status error">${errorMessage}</div>`;
+            } finally {
+                const submitBtn = document.getElementById('submitDataBtn');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '📤 Submit Weather Data';
+            }
+        }
+
+        async function generateForecast() {
+            if (!contract) {
+                showStatus('error', 'Please connect wallet first');
+                return;
+            }
+
+            try {
+                const generateBtn = document.getElementById('generateForecastBtn');
+                const statusDiv = document.getElementById('generateStatus');
+
+                generateBtn.disabled = true;
+                generateBtn.innerHTML = '<span class="loading"></span>Generating...';
+
+                const tx = await contract.generateRegionalForecast();
+
+                statusDiv.innerHTML = '<div class="status info">Transaction submitted. Waiting for confirmation...</div>';
+
+                await tx.wait();
+
+                statusDiv.innerHTML = '<div class="status success">Regional forecast generation initiated!</div>';
+
+                // Refresh info
+                await refreshForecastInfo();
+                await loadForecasts();
+
+            } catch (error) {
+                console.error('Error generating forecast:', error);
+                let errorMessage = error.message;
+
+                // Handle specific error cases
+                if (errorMessage.includes('Cannot generate forecast')) {
+                    errorMessage = '⏰ Cannot generate forecast at this time. Check forecast period timing.';
+                } else if (errorMessage.includes('No stations submitted')) {
+                    errorMessage = '⚠️ No weather stations have submitted data yet';
+                } else if (errorMessage.includes('Already generated')) {
+                    errorMessage = '✅ Forecast has already been generated for this period';
+                } else if (errorMessage.includes('user rejected')) {
+                    errorMessage = '❌ Transaction was rejected by user';
+                } else if (errorMessage.includes('insufficient funds')) {
+                    errorMessage = '💰 Insufficient funds for gas fees';
+                } else {
+                    const match = errorMessage.match(/execution reverted: (.+?)"/);
+                    if (match) {
+                        errorMessage = `⚠️ ${match[1]}`;
+                    }
+                }
+
+                document.getElementById('generateStatus').innerHTML =
+                    `<div class="status error">${errorMessage}</div>`;
+            } finally {
+                const generateBtn = document.getElementById('generateForecastBtn');
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '⚡ Generate Forecast';
+            }
+        }
+
+        async function toggleTimeWindow() {
+            if (!contract) {
+                showStatus('error', 'Please connect wallet first');
+                return;
+            }
+
+            try {
+                // Check if user is owner
+                const owner = await contract.owner();
+                if (userAccount.toLowerCase() !== owner.toLowerCase()) {
+                    showStatus('error', 'Only the contract owner can toggle time window');
+                    return;
+                }
+
+                const toggleBtn = document.getElementById('toggleTimeWindowBtn');
+                const statusDiv = document.getElementById('timeWindowStatus2');
+
+                // Get current status
+                const currentStatus = await contract.timeWindowEnabled();
+                const newStatus = !currentStatus;
+
+                toggleBtn.disabled = true;
+                toggleBtn.innerHTML = '<span class="loading"></span>Updating...';
+
+                statusDiv.innerHTML = '<div class="status info" style="margin-top: 10px;">Transaction submitted. Waiting for confirmation...</div>';
+
+                const tx = await contract.setTimeWindowEnabled(newStatus);
+
+                await tx.wait();
+
+                statusDiv.innerHTML = `<div class="status success" style="margin-top: 10px;">Time window ${newStatus ? 'enabled' : 'disabled'} successfully! ${newStatus ? '⏰ Restrictions apply' : '✅ Testing mode active'}</div>`;
+
+                // Refresh contract info to show updated status
+                await refreshContractInfo();
+                await refreshForecastInfo();
+
+            } catch (error) {
+                console.error('Error toggling time window:', error);
+                let errorMessage = error.message;
+
+                // Handle specific error cases
+                if (errorMessage.includes('Not authorized')) {
+                    errorMessage = '🚫 Only the contract owner can toggle time window';
+                } else if (errorMessage.includes('user rejected')) {
+                    errorMessage = '❌ Transaction was rejected by user';
+                } else if (errorMessage.includes('insufficient funds')) {
+                    errorMessage = '💰 Insufficient funds for gas fees';
+                } else {
+                    const match = errorMessage.match(/execution reverted: (.+?)"/);
+                    if (match) {
+                        errorMessage = `⚠️ ${match[1]}`;
+                    }
+                }
+
+                document.getElementById('timeWindowStatus2').innerHTML =
+                    `<div class="status error" style="margin-top: 10px;">${errorMessage}</div>`;
+
+            } finally {
+                const toggleBtn = document.getElementById('toggleTimeWindowBtn');
+                toggleBtn.disabled = false;
+                toggleBtn.innerHTML = '⏰ Toggle Time Window';
+            }
+        }
+
+        async function loadStations() {
+            if (!contract) return;
+
+            try {
+                const stationCount = await contract.stationCount();
+                const stationsDiv = document.getElementById('stationsList');
+
+                if (stationCount.toString() === '0') {
+                    stationsDiv.innerHTML = '<div class="status info">No weather stations registered yet</div>';
+                    return;
+                }
+
+                let stationsHTML = '';
+
+                for (let i = 1; i <= stationCount; i++) {
+                    try {
+                        const stationInfo = await contract.getStationInfo(i);
+                        const hasSubmitted = await contract.hasStationSubmitted(i);
+
+                        stationsHTML += `
+                            <div class="station-item">
+                                <h4>Station ${i}: ${stationInfo[1]}</h4>
+                                <div class="station-info">
+                                    <strong>Address:</strong> ${stationInfo[0].substring(0, 10)}...<br>
+                                    <strong>Active:</strong> ${stationInfo[2] ? '✅ Yes' : '❌ No'}<br>
+                                    <strong>Submitted This Period:</strong> ${hasSubmitted ? '✅ Yes' : '❌ No'}<br>
+                                    <strong>Total Submissions:</strong> ${stationInfo[4].toString()}
+                                </div>
+                            </div>
+                        `;
+                    } catch (error) {
+                        stationsHTML += `
+                            <div class="station-item">
+                                <h4>Station ${i}</h4>
+                                <div class="station-info">Error loading station info</div>
+                            </div>
+                        `;
+                    }
+                }
+
+                stationsDiv.innerHTML = stationsHTML;
+
+            } catch (error) {
+                console.error('Error loading stations:', error);
+                document.getElementById('stationsList').innerHTML =
+                    '<div class="status error">Failed to load stations</div>';
+            }
+        }
+
+        async function loadForecasts() {
+            if (!contract) return;
+
+            try {
+                const forecastCount = await contract.forecastCount();
+                const forecastsDiv = document.getElementById('forecastHistory');
+
+                if (forecastCount.toString() === '1') {
+                    forecastsDiv.innerHTML = '<div class="status info">No forecasts generated yet</div>';
+                    return;
+                }
+
+                let forecastsHTML = '';
+                const startFrom = Math.max(1, forecastCount - 5); // Show last 5 forecasts
+
+                for (let i = forecastCount - 1; i >= startFrom; i--) {
+                    try {
+                        const forecast = await contract.getRegionalForecast(i);
+
+                        if (forecast[6]) { // isGenerated
+                            const date = new Date(forecast[4] * 1000);
+
+                            forecastsHTML += `
+                                <div class="forecast-item">
+                                    <div class="forecast-header">
+                                        <span class="forecast-id">Forecast #${i}</span>
+                                        <span class="forecast-time">${date.toLocaleString()}</span>
+                                    </div>
+                                    <div class="weather-data">
+                                        <div class="weather-item">
+                                            <span class="value">${(forecast[0] / 100).toFixed(1)}°C</span>
+                                            <span class="label">Temperature</span>
+                                        </div>
+                                        <div class="weather-item">
+                                            <span class="value">${(forecast[1] / 100).toFixed(1)}%</span>
+                                            <span class="label">Humidity</span>
+                                        </div>
+                                        <div class="weather-item">
+                                            <span class="value">${(forecast[2] / 100).toFixed(2)} hPa</span>
+                                            <span class="label">Pressure</span>
+                                        </div>
+                                        <div class="weather-item">
+                                            <span class="value">${forecast[3]} km/h</span>
+                                            <span class="label">Wind Speed</span>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top: 10px; color: #718096; font-size: 0.9rem;">
+                                        Participating Stations: ${forecast[5].toString()}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    } catch (error) {
+                        console.error(`Error loading forecast ${i}:`, error);
+                    }
+                }
+
+                if (forecastsHTML === '') {
+                    forecastsDiv.innerHTML = '<div class="status info">No completed forecasts available</div>';
+                } else {
+                    forecastsDiv.innerHTML = forecastsHTML;
+                }
+
+            } catch (error) {
+                console.error('Error loading forecasts:', error);
+                document.getElementById('forecastHistory').innerHTML =
+                    '<div class="status error">Failed to load forecasts</div>';
+            }
+        }
+
+        function showStatus(type, message) {
+            // Create temporary status message
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            statusDiv.style.position = 'fixed';
+            statusDiv.style.top = '80px';
+            statusDiv.style.right = '20px';
+            statusDiv.style.zIndex = '1001';
+            statusDiv.style.maxWidth = '300px';
+
+            document.body.appendChild(statusDiv);
+
+            setTimeout(() => {
+                document.body.removeChild(statusDiv);
+            }, 5000);
+        }
+
+        function handleAccountsChanged(accounts) {
+            if (accounts.length === 0) {
+                // User disconnected
+                userAccount = null;
+                signer = null;
+                contract = null;
+                updateWalletInfo();
+                updateConnectionStatus('disconnected');
+            } else {
+                // Account changed
+                connectWallet();
+            }
+        }
+
+        function handleChainChanged() {
+            // Reload the page when chain changes
+            window.location.reload();
+        }
+
+        // Auto-refresh data every 30 seconds
+        setInterval(async () => {
+            if (contract) {
+                await refreshForecastInfo();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>// Last modified: 2025年10月13日 23:42:32
