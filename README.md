@@ -141,7 +141,7 @@ A full-featured example application demonstrating the SDK's capabilities.
 
 ### Live Demo
 
-**Application**: [https://github.com/MyaLind/fhevm-react-template](https://github.com/MyaLind/fhevm-react-template)
+**Application**: [https://myalind.github.io/FHEWeatherAggregator/](https://myalind.github.io/FHEWeatherAggregator/)
 
 **Smart Contract** (Sepolia): `0x291B77969Bb18710609C35d263adCb0848a3f82F`
 
@@ -386,14 +386,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [SDK API Documentation](packages/fhevm-sdk/README.md)
 - [Next.js Example Guide](examples/nextjs-weather/README.md)
-- [HTML Example Guide](examples/weather-aggregator/README.md)
+- [HTML Example Guide](examples/weather-aggregator)
 - [Zama fhEVM Documentation](https://docs.zama.ai/fhevm)
 
 ### Links
 
 - **GitHub Repository**: [https://github.com/MyaLind/fhevm-react-template](https://github.com/MyaLind/fhevm-react-template)
 - **Live Demo**: [https://myalind.github.io/FHEWeatherAggregator/](https://myalind.github.io/FHEWeatherAggregator/)
-- **Issue Tracker**: [GitHub Issues](https://github.com/MyaLind/fhevm-react-template/issues)
+
 
 ### Community
 
