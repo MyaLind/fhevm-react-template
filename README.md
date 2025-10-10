@@ -297,6 +297,9 @@ A comprehensive video demonstration is available showing:
 - Smart contract integration
 - Live example walkthrough
 
+demo1.mp4
+demo2.mp4
+demo3.mp4
 
 ## 🌐 Deployment Links
 
