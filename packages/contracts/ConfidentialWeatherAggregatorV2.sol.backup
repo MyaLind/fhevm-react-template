@@ -1,0 +1,300 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+// Simplified version - just add onlyGateway modifier to existing contract
+// Import statements will be adjusted based on installed package structure
+
+contract ConfidentialWeatherAggregator {
+
+    address public owner;
+    address public constant GATEWAY_CONTRACT_ADDRESS = 0x33347831500F1E73F0CccBBe71C7E21Ca0100a42;
+    uint256 public stationCount;
+    uint256 public forecastCount;
+
+    struct WeatherStation {
+        address stationAddress;
+        string location;
+        bool isActive;
+        uint256 lastSubmissionTime;
+        uint256 submissionCount;
+    }
+
+    struct WeatherData {
+        uint32 encryptedTemperature; // Simplified: store as uint32 instead of euint32 for now
+        uint32 encryptedHumidity;
+        uint32 encryptedPressure;
+        uint8 encryptedWindSpeed;
+        uint256 timestamp;
+        bool isSubmitted;
+    }
+
+    struct RegionalForecast {
+        uint32 aggregatedTemperature;
+        uint32 aggregatedHumidity;
+        uint32 aggregatedPressure;
+        uint8 aggregatedWindSpeed;
+        uint256 timestamp;
+        uint256 participatingStations;
+        bool isGenerated;
+    }
+
+    mapping(uint256 => WeatherStation) public weatherStations;
+    mapping(uint256 => mapping(uint256 => WeatherData)) public stationData;
+    mapping(uint256 => RegionalForecast) public regionalForecasts;
+    mapping(address => uint256) public stationAddressToId;
+
+    event StationRegistered(uint256 indexed stationId, address indexed stationAddress, string location);
+    event WeatherDataSubmitted(uint256 indexed stationId, uint256 indexed forecastId, uint256 timestamp);
+    event RegionalForecastGenerated(uint256 indexed forecastId, uint256 participatingStations, uint256 timestamp);
+    event StationDeactivated(uint256 indexed stationId);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not authorized");
+        _;
+    }
+
+    modifier onlyGateway() {
+        require(msg.sender == GATEWAY_CONTRACT_ADDRESS, "Only gateway can call this function");
+        _;
+    }
+
+    modifier onlyActiveStation() {
+        uint256 stationId = stationAddressToId[msg.sender];
+        require(stationId > 0, "Station not registered");
+        require(weatherStations[stationId].isActive, "Station not active");
+        _;
+    }
+
+    modifier validForecastPeriod() {
+        require(canSubmitData(), "Not in valid submission period");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+        stationCount = 0;
+        forecastCount = 1;
+    }
+
+    function canSubmitData() public view returns (bool) {
+        uint256 currentHour = (block.timestamp / 3600) % 24;
+        return currentHour % 6 == 0;
+    }
+
+    function canGenerateForecast() public view returns (bool) {
+        uint256 currentHour = (block.timestamp / 3600) % 24;
+        return (currentHour + 5) % 6 == 0;
+    }
+
+    function registerStation(address stationAddress, string calldata location) external onlyOwner {
+        require(stationAddressToId[stationAddress] == 0, "Station already registered");
+
+        stationCount++;
+        weatherStations[stationCount] = WeatherStation({
+            stationAddress: stationAddress,
+            location: location,
+            isActive: true,
+            lastSubmissionTime: 0,
+            submissionCount: 0
+        });
+
+        stationAddressToId[stationAddress] = stationCount;
+        emit StationRegistered(stationCount, stationAddress, location);
+    }
+
+    function submitWeatherData(
+        uint32 temperature,
+        uint32 humidity,
+        uint32 pressure,
+        uint8 windSpeed
+    ) external onlyActiveStation validForecastPeriod {
+        uint256 stationId = stationAddressToId[msg.sender];
+
+        require(!stationData[stationId][forecastCount].isSubmitted, "Data already submitted for this period");
+        require(temperature <= 10000, "Invalid temperature range");
+        require(humidity <= 10000, "Invalid humidity range");
+        require(pressure <= 110000, "Invalid pressure range");
+        require(windSpeed <= 200, "Invalid wind speed range");
+
+        stationData[stationId][forecastCount] = WeatherData({
+            encryptedTemperature: temperature,
+            encryptedHumidity: humidity,
+            encryptedPressure: pressure,
+            encryptedWindSpeed: windSpeed,
+            timestamp: block.timestamp,
+            isSubmitted: true
+        });
+
+        weatherStations[stationId].lastSubmissionTime = block.timestamp;
+        weatherStations[stationId].submissionCount++;
+
+        emit WeatherDataSubmitted(stationId, forecastCount, block.timestamp);
+    }
+
+    function generateRegionalForecast() external {
+        require(canGenerateForecast(), "Not in forecast generation period");
+        require(!regionalForecasts[forecastCount].isGenerated, "Forecast already generated");
+
+        uint256 participatingStations = 0;
+        uint32 totalTemperature = 0;
+        uint32 totalHumidity = 0;
+        uint32 totalPressure = 0;
+        uint32 totalWindSpeed = 0;
+
+        for (uint256 i = 1; i <= stationCount; i++) {
+            if (weatherStations[i].isActive && stationData[i][forecastCount].isSubmitted) {
+                WeatherData storage data = stationData[i][forecastCount];
+
+                totalTemperature += data.encryptedTemperature;
+                totalHumidity += data.encryptedHumidity;
+                totalPressure += data.encryptedPressure;
+                totalWindSpeed += data.encryptedWindSpeed;
+
+                participatingStations++;
+            }
+        }
+
+        require(participatingStations >= 3, "Minimum 3 stations required for forecast");
+
+        // Calculate averages
+        uint32 avgTemperature = totalTemperature / uint32(participatingStations);
+        uint32 avgHumidity = totalHumidity / uint32(participatingStations);
+        uint32 avgPressure = totalPressure / uint32(participatingStations);
+        uint8 avgWindSpeed = uint8(totalWindSpeed / participatingStations);
+
+        regionalForecasts[forecastCount] = RegionalForecast({
+            aggregatedTemperature: avgTemperature,
+            aggregatedHumidity: avgHumidity,
+            aggregatedPressure: avgPressure,
+            aggregatedWindSpeed: avgWindSpeed,
+            timestamp: block.timestamp,
+            participatingStations: participatingStations,
+            isGenerated: true
+        });
+
+        emit RegionalForecastGenerated(forecastCount, participatingStations, block.timestamp);
+        forecastCount++;
+    }
+
+    // Callback for Gateway API (with onlyGateway modifier - this is the key change)
+    function processForecastResult(
+        uint256 requestId,
+        uint32 totalTemperature,
+        uint32 totalHumidity,
+        uint32 totalPressure,
+        uint32 totalWindSpeed
+    ) public onlyGateway {
+        require(requestId > 0, "Invalid request ID");
+
+        uint256 participatingStations = 0;
+        for (uint256 i = 1; i <= stationCount; i++) {
+            if (weatherStations[i].isActive && stationData[i][forecastCount].isSubmitted) {
+                participatingStations++;
+            }
+        }
+
+        uint32 avgTemperature = totalTemperature / uint32(participatingStations);
+        uint32 avgHumidity = totalHumidity / uint32(participatingStations);
+        uint32 avgPressure = totalPressure / uint32(participatingStations);
+        uint32 avgWindSpeed = totalWindSpeed / uint32(participatingStations);
+
+        regionalForecasts[forecastCount] = RegionalForecast({
+            aggregatedTemperature: avgTemperature,
+            aggregatedHumidity: avgHumidity,
+            aggregatedPressure: avgPressure,
+            aggregatedWindSpeed: uint8(avgWindSpeed),
+            timestamp: block.timestamp,
+            participatingStations: participatingStations,
+            isGenerated: true
+        });
+
+        emit RegionalForecastGenerated(forecastCount, participatingStations, block.timestamp);
+        forecastCount++;
+    }
+
+    function getCurrentForecastInfo() external view returns (
+        uint256 currentForecastId,
+        bool canSubmit,
+        bool canGenerate,
+        uint256 submittedStations
+    ) {
+        uint256 submitted = 0;
+        for (uint256 i = 1; i <= stationCount; i++) {
+            if (weatherStations[i].isActive && stationData[i][forecastCount].isSubmitted) {
+                submitted++;
+            }
+        }
+
+        return (
+            forecastCount,
+            canSubmitData(),
+            canGenerateForecast(),
+            submitted
+        );
+    }
+
+    function getStationInfo(uint256 stationId) external view returns (
+        address stationAddress,
+        string memory location,
+        bool isActive,
+        uint256 lastSubmissionTime,
+        uint256 submissionCount
+    ) {
+        require(stationId > 0 && stationId <= stationCount, "Invalid station ID");
+        WeatherStation storage station = weatherStations[stationId];
+
+        return (
+            station.stationAddress,
+            station.location,
+            station.isActive,
+            station.lastSubmissionTime,
+            station.submissionCount
+        );
+    }
+
+    function getRegionalForecast(uint256 forecastId) external view returns (
+        uint32 temperature,
+        uint32 humidity,
+        uint32 pressure,
+        uint8 windSpeed,
+        uint256 timestamp,
+        uint256 participatingStations,
+        bool isGenerated
+    ) {
+        RegionalForecast storage forecast = regionalForecasts[forecastId];
+
+        return (
+            forecast.aggregatedTemperature,
+            forecast.aggregatedHumidity,
+            forecast.aggregatedPressure,
+            forecast.aggregatedWindSpeed,
+            forecast.timestamp,
+            forecast.participatingStations,
+            forecast.isGenerated
+        );
+    }
+
+    function deactivateStation(uint256 stationId) external onlyOwner {
+        require(stationId > 0 && stationId <= stationCount, "Invalid station ID");
+        weatherStations[stationId].isActive = false;
+        emit StationDeactivated(stationId);
+    }
+
+    function getCurrentHour() external view returns (uint256) {
+        return (block.timestamp / 3600) % 24;
+    }
+
+    function hasStationSubmitted(uint256 stationId) external view returns (bool) {
+        return stationData[stationId][forecastCount].isSubmitted;
+    }
+
+    function getActiveStationCount() external view returns (uint256) {
+        uint256 activeCount = 0;
+        for (uint256 i = 1; i <= stationCount; i++) {
+            if (weatherStations[i].isActive) {
+                activeCount++;
+            }
+        }
+        return activeCount;
+    }
+}
