@@ -302,7 +302,7 @@ A comprehensive video demonstration is available showing:
 
 ### Live Applications
 
-- **Weather Aggregator Demo**: [https://github.com/MyaLind/fhevm-react-template](https://github.com/MyaLind/fhevm-react-template)
+- **Weather Aggregator Demo**: [https://myalind.github.io/FHEWeatherAggregator/](https://myalind.github.io/FHEWeatherAggregator/)
 
 ### Smart Contracts (Sepolia Testnet)
 
@@ -367,7 +367,7 @@ We welcome contributions! Whether it's:
 4. Write/update tests
 5. Submit a Pull Request
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+ 
 
 ## 📄 License
 
@@ -392,7 +392,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Links
 
 - **GitHub Repository**: [https://github.com/MyaLind/fhevm-react-template](https://github.com/MyaLind/fhevm-react-template)
-- **Live Demo**: [https://github.com/MyaLind/fhevm-react-template](https://github.com/MyaLind/fhevm-react-template)
+- **Live Demo**: [https://myalind.github.io/FHEWeatherAggregator/](https://myalind.github.io/FHEWeatherAggregator/)
 - **Issue Tracker**: [GitHub Issues](https://github.com/MyaLind/fhevm-react-template/issues)
 
 ### Community
