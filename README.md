@@ -141,7 +141,7 @@ A full-featured example application demonstrating the SDK's capabilities.
 
 ### Live Demo
 
-**Application**: [https://myalind.github.io/FHEWeatherAggregator/](https://myalind.github.io/FHEWeatherAggregator/)
+**Application**: [https://weather-aggregator.vercel.app/](https://weather-aggregator.vercel.app/)
 
 **Smart Contract** (Sepolia): `0x291B77969Bb18710609C35d263adCb0848a3f82F`
 
@@ -305,7 +305,7 @@ demo3.mp4
 
 ### Live Applications
 
-- **Weather Aggregator Demo**: [https://myalind.github.io/FHEWeatherAggregator/](https://myalind.github.io/FHEWeatherAggregator/)
+- **Weather Aggregator Demo**: [https://weather-aggregator.vercel.app/](https://weather-aggregator.vercel.app/)
 
 ### Smart Contracts (Sepolia Testnet)
 
@@ -395,7 +395,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Links
 
 - **GitHub Repository**: [https://github.com/MyaLind/fhevm-react-template](https://github.com/MyaLind/fhevm-react-template)
-- **Live Demo**: [https://myalind.github.io/FHEWeatherAggregator/](https://myalind.github.io/FHEWeatherAggregator/)
+- **Live Demo**: [https://weather-aggregator.vercel.app/](https://weather-aggregator.vercel.app/)
 
 
 ### Community
