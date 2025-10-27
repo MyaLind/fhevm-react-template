@@ -2,7 +2,7 @@
 
 A privacy-preserving decentralized weather forecasting platform built with Fully Homomorphic Encryption (FHE) technology on Ethereum.
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-blue)](https://myalind.github.io/FHEWeatherAggregator/)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-blue)](https://weather-aggregator.vercel.app/)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.24-363636?logo=solidity)](https://soliditylang.org/)
 [![Hardhat](https://img.shields.io/badge/Hardhat-2.22.16-yellow)](https://hardhat.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -11,9 +11,9 @@ A privacy-preserving decentralized weather forecasting platform built with Fully
 
 The Confidential Weather Aggregator enables multiple weather stations to submit encrypted meteorological data that can be aggregated into accurate regional forecasts **without revealing individual station measurements**. This ensures data privacy while maintaining forecast accuracy through secure multi-party computation.
 
-**Live Application**: [https://myalind.github.io/FHEWeatherAggregator/](https://myalind.github.io/FHEWeatherAggregator/)
+**Live Application**: [https://weather-aggregator.vercel.app/](https://weather-aggregator.vercel.app/)
 
-**Repository**: [https://github.com/MyaLind/FHEWeatherAggregator](https://github.com/MyaLind/FHEWeatherAggregator)
+
 
 ## 📹 Demo Video
 
@@ -516,7 +516,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Contact & Support
 
 - **GitHub Repository**: [https://github.com/MyaLind/FHEWeatherAggregator](https://github.com/MyaLind/FHEWeatherAggregator)
-- **Live Application**: [https://myalind.github.io/FHEWeatherAggregator/](https://myalind.github.io/FHEWeatherAggregator/)
+- **Live Application**: [https://weather-aggregator.vercel.app/](https://weather-aggregator.vercel.app/)
 - **Issues**: [GitHub Issues](https://github.com/MyaLind/FHEWeatherAggregator/issues)
 
 ## 📚 Additional Resources
