@@ -15,6 +15,8 @@ The FHEVM SDK provides a **wagmi-like** developer experience for building applic
 - 🔐 **Fully Homomorphic Encryption**: Compute on encrypted data without decryption
 - ⚛️ **wagmi-Style API**: Familiar hooks and patterns for web3 developers
 - 🎯 **Framework Agnostic**: Core library works with any JavaScript framework
+- 🌐 **Multi-Framework Support**: React hooks and Vue composables included
+- 🛠️ **Rich Utilities**: Comprehensive encryption, security, and validation utilities
 - 📘 **TypeScript First**: Complete type safety with comprehensive definitions
 - 🧩 **Modular Architecture**: Use only what you need
 - 🚀 **Production Ready**: Tested with live deployments
@@ -23,7 +25,7 @@ The FHEVM SDK provides a **wagmi-like** developer experience for building applic
 
 This monorepo contains:
 
-- **`@fhevm/sdk`**: Core SDK with React hooks (packages/fhevm-sdk/)
+- **`@fhevm/sdk`**: Core SDK with React hooks, Vue composables, and utilities (packages/fhevm-sdk/)
 - **`@fhevm-sdk/contracts`**: Example smart contracts (packages/contracts/)
 - **Next.js Weather Example**: Modern Next.js 14 App Router demo (examples/nextjs-weather/)
 - **HTML Weather Example**: Static HTML/JavaScript demo (examples/weather-aggregator/)
@@ -113,6 +115,21 @@ function PrivateDataForm() {
 }
 ```
 
+### Vue Application
+
+```typescript
+import { useFhevmClient, useFhevmEncrypt } from '@fhevm/sdk';
+
+// In your Vue component
+const { client, isReady } = useFhevmClient({ provider });
+const { data, encrypt, isLoading } = useFhevmEncrypt();
+
+const handleSubmit = async (value: number) => {
+  await encrypt(value, 'euint32');
+  // data contains encrypted value
+};
+```
+
 ### Framework-Agnostic Usage
 
 ```typescript
@@ -124,6 +141,30 @@ await client.init();
 const encrypted = await client.encrypt(42, 'euint32');
 ```
 
+### Using Utility Functions
+
+```typescript
+import {
+  encryptBatch,
+  validateEncryptedData,
+  isValidAddress,
+  isValidEncryptedType
+} from '@fhevm/sdk';
+
+// Batch encrypt multiple values
+const encrypted = await encryptBatch(client, [10, 20, 30], 'euint32');
+
+// Validate encrypted data
+if (validateEncryptedData(encrypted[0])) {
+  // Safe to submit to contract
+}
+
+// Validate addresses
+if (isValidAddress('0x123...')) {
+  // Valid Ethereum address
+}
+```
+
 ## 📚 API Documentation
 
 ### React Hooks
@@ -132,6 +173,19 @@ const encrypted = await client.encrypt(42, 'euint32');
 - **`useEncrypt()`**: Encrypt values with loading states
 - **`useDecrypt()`**: Decrypt values (with Gateway)
 - **`useFHEContract()`**: Interact with FHE-enabled contracts
+
+### Vue Composables
+
+- **`useFhevmClient()`**: Initialize FHEVM client for Vue applications
+- **`useFhevmEncrypt()`**: Encrypt values with reactive state
+- **`useFhevmContract()`**: Interact with contracts in Vue
+
+### Utility Functions
+
+- **Encryption**: `encrypt()`, `encryptBatch()`, `validateEncryptedData()`
+- **Decryption**: `requestDecryption()`, `parseDecryptedValue()`, `isDecryptionComplete()`
+- **Security**: `sanitizeInput()`, `isValidAddress()`, `validateContractAddress()`, `generateNonce()`, `isSecureContext()`
+- **Validation**: `isValidEncryptedType()`, `isValidValueForType()`, `isValidConfig()`, `isSupportedNetwork()`
 
 See [packages/fhevm-sdk/README.md](packages/fhevm-sdk/README.md) for complete API documentation.
 
@@ -173,6 +227,14 @@ fhevm-react-template/
 │   │   │   ├── react/          # React hooks and providers
 │   │   │   │   ├── FHEVMProvider.tsx
 │   │   │   │   └── hooks.ts
+│   │   │   ├── adapters/       # Framework adapters
+│   │   │   │   ├── react.ts    # React adapter
+│   │   │   │   └── vue.ts      # Vue composables
+│   │   │   ├── utils/          # Utility functions
+│   │   │   │   ├── encryption.ts   # Encryption utilities
+│   │   │   │   ├── decryption.ts   # Decryption utilities
+│   │   │   │   ├── security.ts     # Security utilities
+│   │   │   │   └── validation.ts   # Validation utilities
 │   │   │   ├── types/          # TypeScript definitions
 │   │   │   │   └── index.ts
 │   │   │   └── index.ts        # Main exports
@@ -222,6 +284,12 @@ const { encrypt, data } = useEncrypt();
 ```typescript
 // Works with React, Vue, Angular, or vanilla JS
 import { FHEVMClient } from '@fhevm/sdk/core';
+
+// React hooks
+import { useFHEVM, useEncrypt } from '@fhevm/sdk';
+
+// Vue composables
+import { useFhevmClient, useFhevmEncrypt } from '@fhevm/sdk';
 ```
 
 ### 3. Type Safety First
@@ -238,6 +306,21 @@ const encrypted: EncryptedData = await client.encrypt(42, 'euint32');
 // Import only what you need
 import { useEncrypt } from '@fhevm/sdk';  // React hooks
 import { FHEVMClient } from '@fhevm/sdk/core';  // Core only
+import { encrypt, validateEncryptedData } from '@fhevm/sdk';  // Utilities only
+```
+
+### 5. Comprehensive Utilities
+
+```typescript
+// Built-in utilities for common tasks
+import {
+  // Encryption utilities
+  encrypt, encryptBatch, validateEncryptedData,
+  // Security utilities
+  isValidAddress, validateContractAddress, generateNonce,
+  // Validation utilities
+  isValidEncryptedType, isValidValueForType, isSupportedNetwork
+} from '@fhevm/sdk';
 ```
 
 ## 🔧 Development
@@ -333,6 +416,8 @@ The SDK enables various privacy-preserving applications:
 - **Confidential DeFi**: Private trading and lending
 - **Healthcare Data**: HIPAA-compliant blockchain applications
 - **Supply Chain Privacy**: Competitive data, collaborative outcomes
+- **Private Gaming**: Fair gameplay with hidden state
+- **Confidential Identity**: Privacy-preserving authentication
 
 ## 🔒 Security & Privacy
 
