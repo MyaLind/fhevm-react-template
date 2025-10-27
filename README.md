@@ -10,6 +10,12 @@ A universal, framework-agnostic SDK for building privacy-preserving decentralize
 
 The FHEVM SDK provides a **wagmi-like** developer experience for building applications with Fully Homomorphic Encryption. It abstracts away the complexity of FHE operations while providing a familiar, intuitive API for web3 developers.
 
+**Live Application**: [https://weather-aggregator.vercel.app/](https://weather-aggregator.vercel.app/)
+
+## 📹 Demo Video
+
+demo1.mp4 demo2.mp4 demo3.mp4
+
 ### Key Features
 
 - 🔐 **Fully Homomorphic Encryption**: Compute on encrypted data without decryption
