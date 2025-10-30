@@ -1,69 +1,50 @@
 {
-  "name": "fhevm-universal-sdk",
+  "name": "weather-aggregator-react",
   "version": "1.0.0",
-  "type": "commonjs",
-  "description": "Universal FHEVM SDK for building privacy-preserving dApps with React, Vue, Next.js and Node.js",
+  "description": "React-based Confidential Weather Aggregator using FHEVM SDK",
   "private": true,
-  "workspaces": [
-    "packages/*",
-    "examples/*"
-  ],
   "scripts": {
-    "setup": "npm install && npm run build:sdk",
-    "build": "npm run build:sdk && npm run build:examples",
-    "build:sdk": "npm run build:core && npm run build:react && npm run build:vue && npm run build:nodejs",
-    "build:core": "cd packages/fhevm-sdk && npm run build",
-    "build:react": "cd packages/fhevm-react && npm run build",
-    "build:vue": "cd packages/fhevm-vue && npm run build",
-    "build:nodejs": "cd packages/fhevm-nodejs && npm run build",
-    "build:examples": "cd examples/nextjs-demo && npm run build",
-    "dev:nextjs": "cd examples/nextjs-demo && npm run dev",
-    "dev:react": "cd examples/react-demo && npm run dev",
-    "dev:vue": "cd examples/vue-demo && npm run dev",
-    "compile:contracts": "cd packages/contracts && npx hardhat compile",
-    "deploy:contracts": "cd packages/contracts && npx hardhat run scripts/deploy.js --network sepolia",
-    "test": "npm run test:sdk && npm run test:contracts",
-    "test:sdk": "cd packages/fhevm-sdk && npm test",
-    "test:contracts": "cd packages/contracts && npm test",
-    "clean": "rm -rf node_modules packages/*/node_modules examples/*/node_modules packages/*/dist",
-    "docs": "cd docs && npm run dev"
-  },
-  "keywords": [
-    "fhevm",
-    "zama",
-    "fhe",
-    "encryption",
-    "privacy",
-    "web3",
-    "react",
-    "vue",
-    "nextjs",
-    "sdk",
-    "blockchain",
-    "confidential-computing"
-  ],
-  "author": "FHEVM SDK Team",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yourusername/fhevm-universal-sdk"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
-  },
-  "devDependencies": {
-    "@nomicfoundation/hardhat-ethers": "^3.1.0",
-    "ethers": "^6.15.0",
-    "hardhat": "^2.22.16",
-    "tsup": "^8.0.0",
-    "turbo": "^1.13.0",
-    "typescript": "^5.3.0"
+    "dev": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "compile:contracts": "npx hardhat compile",
+    "deploy:contracts": "npx hardhat run scripts/deploy.js --network sepolia"
   },
   "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "ethers": "^6.15.0",
+    "@fhevm/sdk": "file:../../packages/fhevm-sdk",
+    "fhevmjs": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "@nomicfoundation/hardhat-ethers": "^3.1.0",
+    "hardhat": "^2.22.16",
     "@fhevm/solidity": "^0.8.0",
     "@zama-fhe/oracle-solidity": "^0.2.0",
-    "dotenv": "^17.2.3",
-    "fhevmjs": "^0.6.2"
+    "dotenv": "^17.2.3"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

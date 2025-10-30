@@ -34,7 +34,7 @@ This monorepo contains:
 - **`@fhevm/sdk`**: Core SDK with React hooks, Vue composables, and utilities (packages/fhevm-sdk/)
 - **`@fhevm-sdk/contracts`**: Example smart contracts (packages/contracts/)
 - **Next.js Weather Example**: Modern Next.js 14 App Router demo (examples/nextjs-weather/)
-- **HTML Weather Example**: Static HTML/JavaScript demo (examples/weather-aggregator/)
+- **React Weather Aggregator**: React-based weather aggregator with SDK integration (examples/weather-aggregator/)
 
 ## 🚀 Quick Start
 
@@ -67,10 +67,54 @@ npm run build:contracts  # Compile smart contracts
 npm run dev:nextjs
 # Opens at http://localhost:3000
 
-# Or start the HTML example
-npm run dev:example
-# Opens at http://localhost:8080
+# Or start the React Weather Aggregator
+cd examples/weather-aggregator && npm run dev
+# Opens at http://localhost:3000
 ```
+
+## 📱 Next.js Example Features
+
+The Next.js example (`examples/nextjs-weather/`) includes comprehensive demonstrations of SDK capabilities:
+
+### API Routes
+
+- **`/api/fhe/route.ts`** - Main FHE operations endpoint
+- **`/api/fhe/encrypt/route.ts`** - Client-side encryption guidance
+- **`/api/fhe/decrypt/route.ts`** - Decryption workflow information
+- **`/api/fhe/compute/route.ts`** - Homomorphic computation demos
+- **`/api/keys/route.ts`** - Key management API
+
+### UI Components
+
+**Base Components** (`components/ui/`)
+- `Button.tsx` - Reusable button with loading states
+- `Input.tsx` - Form input with validation
+- `Card.tsx` - Container component
+
+**FHE Components** (`components/fhe/`)
+- `FHEProvider.tsx` - SDK context provider
+- `EncryptionDemo.tsx` - Interactive encryption demo
+- `ComputationDemo.tsx` - FHE operations showcase
+- `KeyManager.tsx` - Key management UI
+
+**Example Use Cases** (`components/examples/`)
+- `BankingExample.tsx` - Confidential banking operations
+- `MedicalExample.tsx` - HIPAA-compliant health data
+
+### Utilities & Hooks
+
+**Libraries** (`lib/`)
+- `fhe/client.ts` - Client-side FHE operations
+- `fhe/server.ts` - Server-side validation
+- `fhe/keys.ts` - Key management utilities
+- `fhe/types.ts` - FHE type definitions
+- `utils/security.ts` - Security helpers
+- `utils/validation.ts` - Input validation
+
+**Custom Hooks** (`hooks/`)
+- `useFHE.ts` - Enhanced FHE client hook
+- `useEncryption.ts` - Encryption with validation
+- `useComputation.ts` - Computation utilities
 
 ## 💻 Usage
 
@@ -195,9 +239,9 @@ if (isValidAddress('0x123...')) {
 
 See [packages/fhevm-sdk/README.md](packages/fhevm-sdk/README.md) for complete API documentation.
 
-## 🌟 Example: Confidential Weather Aggregator
+## 🌟 Examples: Confidential Weather Applications
 
-A full-featured example application demonstrating the SDK's capabilities.
+Full-featured example applications demonstrating the SDK's capabilities in both Next.js and React.
 
 ### Live Demo
 
@@ -205,8 +249,21 @@ A full-featured example application demonstrating the SDK's capabilities.
 
 **Smart Contract** (Sepolia): `0x291B77969Bb18710609C35d263adCb0848a3f82F`
 
-### What It Demonstrates
+### What They Demonstrate
 
+**Next.js Weather Example** (`examples/nextjs-weather/`)
+- Complete Next.js 14 App Router implementation
+- API routes for FHE operations
+- Server-side and client-side integration
+- Comprehensive UI components and use cases
+
+**React Weather Aggregator** (`examples/weather-aggregator/`)
+- Modern React application with TypeScript
+- Direct SDK integration using hooks
+- Wallet connection and contract interaction
+- Theme customization and responsive design
+
+Both examples showcase:
 - **Privacy-Preserving Aggregation**: Multiple weather stations submit encrypted measurements
 - **Computation on Encrypted Data**: Smart contract aggregates without decryption
 - **Selective Decryption**: Only final averages are decrypted and made public
@@ -259,13 +316,43 @@ fhevm-react-template/
 ├── examples/
 │   ├── nextjs-weather/         # 🌤️ Next.js 14 Example (Recommended)
 │   │   ├── app/                # Next.js App Router
+│   │   │   ├── api/            # API routes for FHE operations
+│   │   │   │   ├── fhe/        # FHE encrypt/decrypt/compute endpoints
+│   │   │   │   └── keys/       # Key management API
+│   │   │   ├── layout.tsx      # Root layout
+│   │   │   ├── page.tsx        # Home page
+│   │   │   └── globals.css     # Global styles
 │   │   ├── components/         # React components using SDK
+│   │   │   ├── ui/             # Base UI components (Button, Input, Card)
+│   │   │   ├── fhe/            # FHE components (Provider, Encryption, Computation, KeyManager)
+│   │   │   └── examples/       # Use case examples (Banking, Medical)
+│   │   ├── lib/                # Utility libraries
+│   │   │   ├── fhe/            # FHE client/server operations
+│   │   │   └── utils/          # Security & validation utilities
+│   │   ├── hooks/              # Custom hooks (useFHE, useEncryption, useComputation)
+│   │   ├── types/              # TypeScript definitions
 │   │   ├── package.json
 │   │   └── README.md
 │   │
-│   └── weather-aggregator/     # 📄 HTML/JavaScript Example
-│       ├── index.html          # Static frontend
-│       └── docs/               # Additional docs
+│   └── weather-aggregator/     # ⚛️ React Weather Aggregator
+│       ├── src/                # React source files
+│       │   ├── components/     # React components
+│       │   ├── hooks/          # Custom hooks (useWallet, useContract)
+│       │   ├── utils/          # Utilities (contract, theme)
+│       │   ├── App.tsx         # Main app component
+│       │   ├── App.css         # Application styles
+│       │   └── index.tsx       # Entry point with FHEVMProvider
+│       ├── public/             # Public assets
+│       ├── contracts/          # Smart contracts
+│       ├── package.json
+│       └── README.md
+│
+├── templates/                  # 📋 Project Templates
+│   └── nextjs/                 # Next.js template
+│       └── README.md           # Template documentation
+│
+├── docs/                       # 📚 Documentation
+│   └── README.md               # Complete SDK documentation
 │
 ├── package.json                # Root workspace config
 ├── README.md                   # This file
